@@ -1,4 +1,4 @@
-version: '2'
+# version: '2'
 
 # Note: Do not add single quotes '' to variables. Having spaces still works without quotes where required.
 #---------------------------------------------------------------------------------------------------------
@@ -128,6 +128,7 @@ services:
     restart: always
     networks:
       - wekan-tier
+      - server # **ADDED: wekan to server network**
     #-------------------------------------------------------------------------------------
     # ==== BUILD wekan-app DOCKER CONTAINER FROM SOURCE, if you uncomment these ====
     # ==== and use commands: docker-compose up -d --build
@@ -135,13 +136,20 @@ services:
     #  context: .
     #  dockerfile: Dockerfile
     #-------------------------------------------------------------------------------------
-    ports:
+    # ports:
       # Docker outsideport:insideport. Do not add anything extra here.
       # For example, if you want to have wekan on port 3001,
       # use 3001:8080 . Do not add any extra address etc here, that way it does not work.
       # remove port mapping if you use nginx reverse proxy, port 8080 is already exposed to wekan-tier network
-      - 80:8080
+      # - 80:8080 # **REMOVED: port mapping**
+    expose:
+      - '8080'
+    labels:
+      webserver-component: "application" # ADDED: application label
     environment:
+      - DOMAINS=wekan.patel.blue # ADDED: wekan domain
+      - BASE_DOMAIN=wekan.patel.blue # ADDED: wekan domain
+      - SERVICE_PORT=8080
       - MONGO_URL=mongodb://wekandb:27017/wekan
       #---------------------------------------------------------------
       # ==== ROOT_URL SETTING ====
@@ -155,7 +163,8 @@ services:
       #  - http://example.com
       #  - http://boards.example.com
       #  - http://192.168.1.100    <=== using at local LAN
-      - ROOT_URL=http://localhost  #   <=== using only at same laptop/desktop where Wekan is installed
+      # - ROOT_URL=http://localhost  #   <=== using only at same laptop/desktop where Wekan is installed
+      - ROOT_URL=https://wekan.patel.blue # ADDED: wekan domain
       #---------------------------------------------------------------
       # ==== EMAIL SETTINGS ====
       # Email settings are required in both MAIL_URL and Admin Panel,
@@ -164,8 +173,8 @@ services:
       # NOTE: Special characters need to be url-encoded in MAIL_URL.
       #       You can encode those characters for example at: https://www.urlencoder.org
       #- MAIL_URL=smtp://user:pass@mailserver.example.com:25/
-      - MAIL_URL=smtp://<mail_url>:25/?ignoreTLS=true&tls={rejectUnauthorized:false}
-      - MAIL_FROM=Wekan Notifications <noreply.wekan@mydomain.com>
+      - MAIL_URL=smtp://patel.blue:25/?ignoreTLS=true&tls={rejectUnauthorized:false}
+      - MAIL_FROM=Wekan Notifications <noreply.wekan@patel.blue
       #---------------------------------------------------------------
       # ==== OPTIONAL: MONGO OPLOG SETTINGS =====
       # https://github.com/wekan/wekan-mongodb/issues/2#issuecomment-378343587
@@ -244,7 +253,7 @@ services:
       #-IMAGE_COMPRESS_RATIO=80
       #---------------------------------------------------------------
       # ==== NOTIFICATION TRAY AFTER READ DAYS BEFORE REMOVE =====
-      # Number of days after a notification is read before we remove it.
+      # Number of days after a notification is read bef# ADDED: wekan domainore we remove it.
       # Default: 2
       #- NOTIFICATION_TRAY_AFTER_READ_DAYS_BEFORE_REMOVE=2
       #---------------------------------------------------------------
